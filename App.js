@@ -1,30 +1,29 @@
-import { SafeAreaView, Text, FlatList, View } from 'react-native';
+import { SafeAreaView, Text, FlatList, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import tw, { useDeviceContext } from 'twrnc';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import 'react-native-reanimated'; 
 
-const generateData = (count) => Array.from({ length: count }, (_, i) => ({ id: (i + 1).toString() }));
-
-const data = generateData(20)
-
-const Card = ({ item }) => {
-  return (
-    <View style={[tw`w-full h-12 mb-1 mr-1 rounded-lg p-4 bg-purple-400`]}>
-      <Text>{ item.id }</Text>
-    </View>
-  );
-};
-
 const App = () => {
+  const pressedButton = () => {
+    Alert.alert('This is a work in progress!');
+  };
+  useDeviceContext(tw);
+
   return (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <Card item={item} />}
-      numColumns={1}
-      contentContainerStyle={tw`p-4`}
-    />
+    <SafeAreaView style={tw`flex-1 bg-red-400`}>
+        <View style = {tw `flex-1 justify-start items-start bg-red-400`}>
+          <Text style={tw`text-5x1 font-bold mt-8 ml-2`}> Note App </Text>
+          <View style={tw`flex-row w-full rounded-lg items-center m-2 p-2`}>
+            <TouchableOpacity style = {tw`bg-red-100 p-1 rounded`} onPress = {pressedButton}>
+              <Text style = {tw`text-lg font-bold`}>+</Text>
+            </TouchableOpacity>
+            <TextInput placeholder="Search for a note" style = {tw `h-9 p-2 bg-red-100 rounded m-2 text-sm`} />
+
+          </View>
+        </View>
+      
+    </SafeAreaView>
   );
 };
 
