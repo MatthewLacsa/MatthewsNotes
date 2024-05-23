@@ -1,32 +1,95 @@
-import { SafeAreaView, Text, FlatList, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import {useEffect, useLayoutEffect} from 'react';
+import { SafeAreaView, Text, FlatList, View, TextInput, TouchableOpacity, Button } from 'react-native';
 import tw, { useDeviceContext } from 'twrnc';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import 'react-native-reanimated'; 
+import MasonryList from '@react-native-seoul/masonry-list'
+import { useSearchNotesQuery, useAddNoteMutation, useDeleteNoteMutation } from './db';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
+function MainNotes( {navigation} ) {
+  const {data: searchData, error, isLoading} = useSearchNotesQuery("");
+  const [addNote, { data: addNoteData, error: addNoteError}] = useAddNoteMutation();
+  const [ deleteNote ] = useDeleteNoteMutation();
 
-const App = () => {
-  const pressedButton = () => {
-    Alert.alert('This is a work in progress!');
-  };
-  useDeviceContext(tw);
+  useEffect(() => {
+    if(addNoteData != undefined) {
+      console.log(addNoteData.title);
+      navigation.navigate("Edit", {data: addNoteData});
+    }
+
+  }, [addNoteData]);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity onPress = {() => deleteNote(item) } style = {tw `w-[98%] mb-0.5 mx-auto bg-red-300 rounded-lg px-1`}>
+      <Text>{item.title} {item.id}</Text>
+    </TouchableOpacity>
+  )
+  return (
+    <View style={tw`flex-1 items-start justify-start bg-red-400`}>
+    {searchData ? 
+      <MasonryList
+        style={tw`px-0.5 pt-0.5 pb-20`}
+        data={searchData}
+        numColumns={2}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+      />  
+      : <></>
+    }
+      <View style={tw`flex-row items-center`}>
+        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => {addNote({title: "test", content: "content"})}}>
+        <Text style = {tw`text-sm font-bold text-center `}>Add Note</Text>
+        </TouchableOpacity>
+        <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-4 text-sm w-50`} />
+        </View>
+    </View> 
+  );
+}
+function EditScreen({ route, navigation }) {
+  useLayoutEffect(() => {
+    navigation.setOptions({ title: route.params.data.title });
+  }, []);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-red-400`}>
-        <View style = {tw `flex-1 justify-start items-start bg-red-400`}>
-          <Text style={tw`text-5x1 font-bold mt-8 ml-2`}> Note App </Text>
-          <View style={tw`flex-row w-full rounded-lg items-center m-2 p-2`}>
-            <TouchableOpacity style = {tw`bg-red-100 p-1 rounded`} onPress = {pressedButton}>
-              <Text style = {tw`text-lg font-bold`}>+</Text>
-            </TouchableOpacity>
-            <TextInput placeholder="Search for a note" style = {tw `h-9 p-2 bg-red-100 rounded m-2 text-sm`} />
-
-          </View>
-        </View>
-      
-    </SafeAreaView>
+    <View style={tw`flex-1 items-center justify-center bg-red-400`}>
+      <Text style={tw`text-lg text-white`}>Edit Screen {route.params.data.title} {route.params.data.id}</Text>
+    </View>
   );
-};
+}
 
-export default App;
+const Stack = createNativeStackNavigator();
+export default function MyNotes() {
+  return (
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Home">
+          <Stack.Screen
+            options={{
+              headerStyle: tw`bg-red-300 border-0`,
+              headerTintColor: '#fff',
+              headerTitleStyle: tw`font-bold`,
+              headerShadowVisible: false, // gets rid of border on device
+            }}
+            name="Note App"
+            component={MainNotes}
+          />
+          <Stack.Screen
+            options={{
+              headerStyle: tw`bg-red-300 border-0`,
+              headerTintColor: '#fff',
+              headerTitleStyle: tw`font-bold`,
+              headerShadowVisible: false, // gets rid of border on device
+            }}
+            name="Edit"
+            component={EditScreen}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
+  );
+}
 
 
