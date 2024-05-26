@@ -23,7 +23,7 @@ function MainNotes( {navigation} ) {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress = {() => navigation.navigate("Edit", { data: item }) } style = {tw `w-[98%] mb-0.5 mx-auto bg-red-300 rounded-lg px-1`}>
-      <Text>{item.title} {item.id}</Text>
+      <Text>{item.title} {item.content}</Text>
     </TouchableOpacity>
   )
   return (
@@ -40,7 +40,7 @@ function MainNotes( {navigation} ) {
       : <></>
     }
       <View style={tw`flex-row items-center`}>
-        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => {addNote({title: "", content: ""})}}>
+        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => {addNote({title: "Empty Note", content: ""})}}>
         <Text style = {tw`text-sm font-bold text-center `}>Add Note</Text>
         </TouchableOpacity>
         <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-4 text-sm w-50`} />
@@ -49,20 +49,38 @@ function MainNotes( {navigation} ) {
   );
 }
 function EditScreen({ route, navigation }) {
-  const[title, setTitle] = useState(route.params.data.title);
-  const[content, setContent] = useState(route.params.data.content)
-  const[saveNote, {}] = useUpdateNoteMutation(); 
+  const [title, setTitle] = useState(route.params.data.title);
+  const [content, setContent] = useState(route.params.data.content)
+  const [saveNote, {}] = useUpdateNoteMutation(); 
+  const [deleteNote, {}] = useDeleteNoteMutation();
+
+  
+
   useLayoutEffect(() => {
     navigation.setOptions({ title: route.params.data.title });
   }, []);
 
   return (
     <View style={tw`flex-1 bg-red-400 p-2 items-center justify-center`}>
-      <TextInput placeholder = "Please enter title" style = {tw`flex-1 bg-white p-2`} value= {title} onChangeText={setTitle}/>
-      <TextInput placeholder = "Please enter text" style = {tw`flex-1 bg-white p-2`} value= {content} onChangeText={setContent}/>
-      <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => saveNote({id: route.params.data.id, title, content,})} ></TouchableOpacity>
+      <TextInput placeholder = "Please enter title" style = {tw`flex-1 bg-red-200 p-2`} value = {title} onChangeText={setTitle}/>
+      <TextInput placeholder = "Please enter text" style = {tw`flex-1 bg-red-200 p-2`} value = {content} onChangeText={setContent}/>
+      <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => saveNote({id: route.params.data.id, title, content,})} >
+        <Text>Save Note</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => { deleteNote({id: route.params.data.id}); navigation.goBack();} } >
+        <Text>Delete Note</Text>
+      </TouchableOpacity>
     </View>
   );
+  
+  useEffect(() => {
+    if(route.params.data.title && route.params.data.content == "") {
+      deleteNote({id: route.params.data.id}); 
+      navigation.goBack();
+    }
+
+  }, [title, content]);
 }
 
 const Stack = createNativeStackNavigator();
