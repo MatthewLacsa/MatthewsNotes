@@ -13,6 +13,7 @@ function MainNotes( {navigation} ) {
   const {data: searchData, error, isLoading} = useSearchNotesQuery("");
   const [addNote, { data: addNoteData, error: addNoteError}] = useAddNoteMutation();
   const [ deleteNote ] = useDeleteNoteMutation();
+  const [searchBar, setSearchBar] = useState("");
 
   useEffect(() => {
     if(addNoteData != undefined) {
@@ -31,7 +32,7 @@ function MainNotes( {navigation} ) {
     {searchData ? 
       <MasonryList
         style={tw`px-0.5 pt-0.5 pb-20`}
-        data={searchData}
+        data={searchData.filter(note => note.title.includes(searchBar))}
         numColumns={2}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
@@ -40,14 +41,15 @@ function MainNotes( {navigation} ) {
       : <></>
     }
       <View style={tw`flex-row items-center`}>
-        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => {addNote({title: "Empty Note", content: ""})}}>
+        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => {addNote({title: "", content: ""})}}>
         <Text style = {tw`text-sm font-bold text-center `}>Add Note</Text>
         </TouchableOpacity>
-        <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-4 text-sm w-50`} />
+        <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-4 text-sm w-50`} value={searchBar} onChangeText={setSearchBar}/>
         </View>
     </View> 
   );
 }
+
 function EditScreen({ route, navigation }) {
   const [title, setTitle] = useState(route.params.data.title);
   const [content, setContent] = useState(route.params.data.content)
