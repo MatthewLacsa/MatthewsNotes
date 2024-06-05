@@ -1,5 +1,5 @@
 import {useState, useEffect, useLayoutEffect} from 'react';
-import { SafeAreaView, Text, FlatList, View, TextInput, TouchableOpacity, Button } from 'react-native';
+import { Image, SafeAreaView, Text, FlatList, View, TextInput, TouchableOpacity, Button } from 'react-native';
 import tw, { useDeviceContext } from 'twrnc';
 import { Provider } from 'react-redux';
 import { store } from './store';
@@ -9,105 +9,110 @@ import { useSearchNotesQuery, useAddNoteMutation, useDeleteNoteMutation, useUpda
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 
+//function: contains main page functionality including search, adding notes and editing
 function MainNotes( {navigation} ) {
+  //variables used from dependencies
   const {data: searchData, error, isLoading} = useSearchNotesQuery("");
   const [addNote, { data: addNoteData, error: addNoteError}] = useAddNoteMutation();
   const [ deleteNote ] = useDeleteNoteMutation();
   const [searchBar, setSearchBar] = useState("");
 
+  //if data of the note is not empty, navigate to "edit" screen
   useEffect(() => {
     if(addNoteData != undefined) {
       navigation.navigate("Edit", {data: addNoteData});
     }
 
   }, [addNoteData]);
-
+  //navigate to edit if clicked, and show title and content
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress = {() => navigation.navigate("Edit", { data: item }) } style = {tw `w-[98%] mb-0.5 mx-auto bg-red-300 rounded-lg px-1`}>
-      <Text>{item.title} {item.content}</Text>
+      <Text style ={tw `font-bold text-4`}>{item.title}</Text>
+      <Text>{item.content}</Text>
     </TouchableOpacity>
   )
   return (
     <View style={tw`flex-1 items-start justify-start bg-red-400`}>
-    {searchData ? 
+    
+    {searchData ? //list shown in the main page and checks if searching for something (has to be exact title or won't display)
       <MasonryList
         style={tw`px-0.5 pt-0.5 pb-20`}
         data={searchData.filter(note => note.title.includes(searchBar))}
-        numColumns={2}
+        numColumns={2} 
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />  
-      : <></>
-    }
-      <View style={tw`flex-row items-center`}>
-        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => {addNote({title: "", content: ""})}}>
-        <Text style = {tw`text-sm font-bold text-center `}>Add Note</Text>
+      : <></> //button to add note, navigates straight to edit when clicked and a search bar that filters out notes not being searched
+    } 
+      <View style={tw`flex-row items-center`} > 
+        <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-5 text-sm w-60`} value={searchBar} onChangeText={setSearchBar}/>
+        <TouchableOpacity style = {tw`bg-red-100 p-4 m-5 rounded-full `} onPress = {() => {addNote({title: "", content: ""})}}>
+        <Text style = {tw`text-5 font-bold text-center `}>+</Text>
         </TouchableOpacity>
-        <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-4 text-sm w-50`} value={searchBar} onChangeText={setSearchBar}/>
+        
         </View>
     </View> 
+    
   );
 }
-
+//function: functions within the screen for editing such as being able to change content and title, as well as saving and deletion.
 function EditScreen({ route, navigation }) {
+  //variables used from dependencies
   const [title, setTitle] = useState(route.params.data.title);
   const [content, setContent] = useState(route.params.data.content)
   const [saveNote, {}] = useUpdateNoteMutation(); 
   const [deleteNote, {}] = useDeleteNoteMutation();
 
-  
-
-  useLayoutEffect(() => {
+  useLayoutEffect(() => { //set the title of the navigation when typed
     navigation.setOptions({ title: route.params.data.title });
   }, []);
-
+  //show title and content, and when changed, there are 2 buttons as to save or delete
   return (
-    <View style={tw`flex-1 bg-red-400 p-2 items-center justify-center`}>
-      <TextInput placeholder = "Please enter title" style = {tw`flex-1 bg-red-200 p-2`} value = {title} onChangeText={setTitle}/>
-      <TextInput placeholder = "Please enter text" style = {tw`flex-1 bg-red-200 p-2`} value = {content} onChangeText={setContent}/>
-      <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => saveNote({id: route.params.data.id, title, content,})} >
-        <Text>Save Note</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => { deleteNote({id: route.params.data.id}); navigation.goBack();} } >
-        <Text>Delete Note</Text>
-      </TouchableOpacity>
+    
+    <View style={tw`flex-1 bg-red-400 p-2`}>
+      {/*bar where you type title*/}
+      <TextInput placeholder = "Please enter title" style = {tw`bg-red-200 p-2 m-2 w-full rounded-lg`} value = {title} onChangeText={setTitle}/>
+      {/*content to be typed*/}
+      <TextInput placeholder = "Please enter text" style = {tw` bg-red-200 p-2 w-full rounded-lg`} value = {content} onChangeText={setContent} multiline={true}/>
+      {/*saves title and content when you leave*/}
+      <View style={tw`flex-row`}>
+        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => saveNote({id: route.params.data.id, title, content,})} >
+          <Image style={[tw`w-10 h-10`]} source={{uri:  "https://cdn.iconscout.com/icon/free/png-256/free-save-3114502-2598134.png"}} />
+        </TouchableOpacity>
+        {/*deletes note and navigates back to main screen*/}
+        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => { deleteNote({id: route.params.data.id}); navigation.goBack();} } >
+          <Image style={[tw`w-10 h-10`]} source={{uri: "https://static-00.iconduck.com/assets.00/trash-icon-474x512-o7g8kfah.png"}} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
   
-  useEffect(() => {
-    if(route.params.data.title && route.params.data.content == "") {
-      deleteNote({id: route.params.data.id}); 
-      navigation.goBack();
-    }
-
-  }, [title, content]);
 }
 
 const Stack = createNativeStackNavigator();
-
+//default function where i can navigate through the main screen and note screen
 export default function MyNotes() {
   return (
     //prop store added
     <Provider store={store}> 
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Main">
-          <Stack.Screen
+          <Stack.Screen //main screen, this is where you start when you open the app or go back through edit screen 
             options={{
-              headerStyle: tw`bg-red-300 border-0`,
+              headerStyle: tw`bg-red-500 border-0`,
               headerTintColor: '#fff',
-              headerTitleStyle: tw`font-bold`, 
+              headerTitleStyle: tw`font-arial font-bold`, 
               headerShadowVisible: false, 
             }}
-            name="Note App"
+            name="My Notes"
             component={MainNotes}
           />
-          <Stack.Screen
+          <Stack.Screen //navigates to edit screen when add note is pressed
             options={{
-              headerStyle: tw`bg-red-300 border-0`,
+              headerStyle: tw`bg-red-500 border-0`, 
               headerTintColor: '#fff',
-              headerTitleStyle: tw`font-bold`,
+              headerTitleStyle: tw`font-bold font-arial`,
               headerShadowVisible: false,
             }}
             name="Edit"
