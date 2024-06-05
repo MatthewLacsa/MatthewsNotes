@@ -70,13 +70,13 @@ function EditScreen({ route, navigation }) {
   //show title and content, and when changed, there are 2 buttons as to save or delete
   return (
     
-    <View style={tw`flex-1 bg-red-400 p-2`}>
+    <View style={tw`flex-1 items-center bg-red-400 p-2`}>
       {/*bar where you type title*/}
       <TextInput placeholder = "Please enter title" style = {tw`bg-red-200 p-2 m-2 w-full rounded-lg`} value = {title} onChangeText={setTitle}/>
       {/*content to be typed*/}
       <TextInput placeholder = "Please enter text" style = {tw` bg-red-200 p-2 w-full rounded-lg`} value = {content} onChangeText={setContent} multiline={true}/>
       {/*saves title and content when you leave*/}
-      <View style={tw`flex-row`}>
+      <View style={tw`flex-row items-center justify-center`}>
         <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => saveNote({id: route.params.data.id, title, content,})} >
           <Image style={[tw`w-10 h-10`]} source={{uri:  "https://cdn.iconscout.com/icon/free/png-256/free-save-3114502-2598134.png"}} />
         </TouchableOpacity>
@@ -112,7 +112,7 @@ export default function MyNotes() {
             options={{
               headerStyle: tw`bg-red-500 border-0`, 
               headerTintColor: '#fff',
-              headerTitleStyle: tw`font-bold font-arial`,
+              headerTitleStyle: tw`font-bold`,
               headerShadowVisible: false,
             }}
             name="Edit"
