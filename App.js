@@ -1,4 +1,4 @@
-import {useState, useEffect, useLayoutEffect} from 'react';
+import {useState, useEffect, useLayoutEffect, useRef} from 'react';
 import { Image, SafeAreaView, Text, FlatList, View, TextInput, TouchableOpacity, Button } from 'react-native';
 import tw, { useDeviceContext } from 'twrnc';
 import { Provider } from 'react-redux';
@@ -12,7 +12,7 @@ import { NavigationContainer } from '@react-navigation/native';
 //function: contains main page functionality including search, adding notes and editing
 function MainNotes( {navigation} ) {
   //variables used from dependencies
-  const {data: searchData, error, isLoading} = useSearchNotesQuery("");
+  const {data: searchData} = useSearchNotesQuery("");
   const [addNote, { data: addNoteData, error: addNoteError}] = useAddNoteMutation();
   const [ deleteNote ] = useDeleteNoteMutation();
   const [searchBar, setSearchBar] = useState("");
@@ -32,8 +32,12 @@ function MainNotes( {navigation} ) {
     </TouchableOpacity>
   )
   return (
+
+
     <View style={tw`flex-1 items-start justify-start bg-red-400`}>
-    
+    <View style={tw`flex-row items-center`} > 
+    <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-5 text-sm w-80`} value={searchBar} onChangeText={setSearchBar}/>
+    </View>
     {searchData ? //list shown in the main page and checks if searching for something (has to be exact title or won't display)
       <MasonryList
         style={tw`px-0.5 pt-0.5 pb-20`}
@@ -46,7 +50,6 @@ function MainNotes( {navigation} ) {
       : <></> //button to add note, navigates straight to edit when clicked and a search bar that filters out notes not being searched
     } 
       <View style={tw`flex-row items-center`} > 
-        <TextInput placeholder="Search for a note" style={tw`h-8 p-2 bg-red-100 rounded-lg m-5 text-sm w-60`} value={searchBar} onChangeText={setSearchBar}/>
         <TouchableOpacity style = {tw`bg-red-100 p-4 m-5 rounded-full `} onPress = {() => {addNote({title: "", content: ""})}}>
         <Text style = {tw`text-5 font-bold text-center `}>+</Text>
         </TouchableOpacity>
@@ -62,11 +65,29 @@ function EditScreen({ route, navigation }) {
   const [title, setTitle] = useState(route.params.data.title);
   const [content, setContent] = useState(route.params.data.content)
   const [saveNote, {}] = useUpdateNoteMutation(); 
-  const [deleteNote, {}] = useDeleteNoteMutation();
-
+  const [deleteNote] = useDeleteNoteMutation();
   useLayoutEffect(() => { //set the title of the navigation when typed
     navigation.setOptions({ title: route.params.data.title });
   }, []);
+  //automatically save when a change is done
+  useEffect(() => {
+    const saveNoteData = () => {
+      saveNote({
+        id: route.params.data.id,
+        title,
+        content,
+      });
+    };
+    saveNoteData();
+
+    return;
+  }, [title, content, saveNote, navigation, route.params.data.id]);
+  //to be called when trash button is pressed
+  const pressedDelete = () => {
+    deleteNote({id: route.params.data.id}); 
+    navigation.goBack();
+    console.log("Pressed Delete");
+  }
   //show title and content, and when changed, there are 2 buttons as to save or delete
   return (
     
@@ -77,11 +98,8 @@ function EditScreen({ route, navigation }) {
       <TextInput placeholder = "Please enter text" style = {tw` bg-red-200 p-2 w-full rounded-lg`} value = {content} onChangeText={setContent} multiline={true}/>
       {/*saves title and content when you leave*/}
       <View style={tw`flex-row items-center justify-center`}>
-        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => saveNote({id: route.params.data.id, title, content,})} >
-          <Image style={[tw`w-10 h-10`]} source={{uri:  "https://cdn.iconscout.com/icon/free/png-256/free-save-3114502-2598134.png"}} />
-        </TouchableOpacity>
         {/*deletes note and navigates back to main screen*/}
-        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => { deleteNote({id: route.params.data.id}); navigation.goBack();} } >
+        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => pressedDelete()} >
           <Image style={[tw`w-10 h-10`]} source={{uri: "https://static-00.iconduck.com/assets.00/trash-icon-474x512-o7g8kfah.png"}} />
         </TouchableOpacity>
       </View>
@@ -102,7 +120,7 @@ export default function MyNotes() {
             options={{
               headerStyle: tw`bg-red-500 border-0`,
               headerTintColor: '#fff',
-              headerTitleStyle: tw`font-arial font-bold`, 
+              headerTitleStyle: tw`font-bold`, 
               headerShadowVisible: false, 
             }}
             name="My Notes"
