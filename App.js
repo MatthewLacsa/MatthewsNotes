@@ -53,7 +53,6 @@ function MainNotes( {navigation} ) {
         <TouchableOpacity style = {tw`bg-red-100 p-4 m-5 rounded-full `} onPress = {() => {addNote({title: "", content: ""})}}>
         <Text style = {tw`text-5 font-bold text-center `}>+</Text>
         </TouchableOpacity>
-        
         </View>
     </View> 
     
@@ -66,8 +65,18 @@ function EditScreen({ route, navigation }) {
   const [content, setContent] = useState(route.params.data.content)
   const [saveNote, {}] = useUpdateNoteMutation(); 
   const [deleteNote] = useDeleteNoteMutation();
-  useLayoutEffect(() => { //set the title of the navigation when typed
-    navigation.setOptions({ title: route.params.data.title });
+
+   //to be called when trash button is pressed
+   const pressedDelete = () => {
+    deleteNote({id: route.params.data.id}); 
+    navigation.goBack();
+    console.log("Pressed Delete");
+  }
+  useLayoutEffect(() => { //set the title of the navigation when typed and the header to have a delete button
+    navigation.setOptions({ title: route.params.data.title, 
+    headerRight: () => (  <TouchableOpacity style = {tw`bg-red-100 p-1 m-3 rounded-lg `} onPress = {() => pressedDelete()} >
+      <Image style={[tw`w-10 h-10`]} source={{uri: "https://static-00.iconduck.com/assets.00/trash-icon-474x512-o7g8kfah.png"}} />
+      </TouchableOpacity>)});
   }, []);
   //automatically save when a change is done
   useEffect(() => {
@@ -82,12 +91,7 @@ function EditScreen({ route, navigation }) {
 
     return;
   }, [title, content, saveNote, navigation, route.params.data.id]);
-  //to be called when trash button is pressed
-  const pressedDelete = () => {
-    deleteNote({id: route.params.data.id}); 
-    navigation.goBack();
-    console.log("Pressed Delete");
-  }
+ 
   //show title and content, and when changed, there are 2 buttons as to save or delete
   return (
     
@@ -97,12 +101,6 @@ function EditScreen({ route, navigation }) {
       {/*content to be typed*/}
       <TextInput placeholder = "Please enter text" style = {tw` bg-red-200 p-2 w-full rounded-lg`} value = {content} onChangeText={setContent} multiline={true}/>
       {/*saves title and content when you leave*/}
-      <View style={tw`flex-row items-center justify-center`}>
-        {/*deletes note and navigates back to main screen*/}
-        <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => pressedDelete()} >
-          <Image style={[tw`w-10 h-10`]} source={{uri: "https://static-00.iconduck.com/assets.00/trash-icon-474x512-o7g8kfah.png"}} />
-        </TouchableOpacity>
-      </View>
     </View>
   );
   
