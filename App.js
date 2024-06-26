@@ -74,7 +74,7 @@ function EditScreen({ route, navigation }) {
   }
   useLayoutEffect(() => { //set the title of the navigation when typed and the header to have a delete button
     navigation.setOptions({ title: route.params.data.title, 
-    headerRight: () => (  <TouchableOpacity style = {tw`bg-red-100 p-1 m-3 rounded-lg `} onPress = {() => pressedDelete()} >
+    headerRight: () => (  <TouchableOpacity style = {tw`bg-red-100 p-2 m-6 rounded-lg `} onPress = {() => pressedDelete()} >
       <View style = {tw`w-6 h-6`}>
       <Image style={[tw`flex-1`]} source={{uri: "https://static-00.iconduck.com/assets.00/trash-icon-474x512-o7g8kfah.png"}} />
       </View>
